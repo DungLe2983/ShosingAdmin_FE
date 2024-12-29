@@ -8,14 +8,17 @@ import EditProduct from "./Forms/EditProduct.js";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]); // Trạng thái để lưu danh sách sản phẩm đã lọc
-  const [searchQuery, setSearchQuery] = useState(""); // Trạng thái cho ô tìm kiếm
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [categories, setCategories] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editData, setEditData] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [checked, setChecked] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [productsPerPage] = useState(10); // Bạn có thể thay đổi số lượng sản phẩm mỗi trang
 
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
@@ -30,7 +33,7 @@ const Products = () => {
         const productData = await getAllProducts();
         if (productData && Array.isArray(productData.products)) {
           setProducts(productData.products);
-          setFilteredProducts(productData.products); // Cập nhật sản phẩm đã lọc ban đầu
+          setFilteredProducts(productData.products);
         } else {
           toast.error("Invalid product data format.");
         }
@@ -61,12 +64,11 @@ const Products = () => {
   const handleDeleteProduct = async (_id) => {
     try {
       const id = selectedProduct._id;
-      console.log("ID==", id);
       await deleteProduct(id, token);
       setProducts(products.filter((product) => product._id !== id));
       setFilteredProducts(
         filteredProducts.filter((product) => product._id !== id)
-      ); // Cập nhật danh sách đã lọc
+      );
       toast.success("Product deleted successfully");
       setDeleteModalOpen(false);
       setSelectedProduct(null);
@@ -76,20 +78,44 @@ const Products = () => {
     }
   };
 
-  // Hàm xử lý thay đổi ô tìm kiếm
   const handleSearchChange = (event) => {
     const query = event.target.value;
     setSearchQuery(query);
 
-    // Lọc sản phẩm theo tên
     if (query.trim() === "") {
-      setFilteredProducts(products); // Nếu không có từ khóa tìm kiếm, hiển thị tất cả sản phẩm
+      setFilteredProducts(products);
     } else {
-      const filtered = products.filter(
-        (product) => product.name.toLowerCase().includes(query.toLowerCase()) // Kiểm tra tên sản phẩm có chứa từ khóa tìm kiếm không
+      const filtered = products.filter((product) =>
+        product.name.toLowerCase().includes(query.toLowerCase())
       );
-      setFilteredProducts(filtered); // Cập nhật danh sách đã lọc
+      setFilteredProducts(filtered);
     }
+  };
+
+  // Tính toán phân trang
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = filteredProducts.slice(
+    indexOfFirstProduct,
+    indexOfLastProduct
+  );
+
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handlePageClick = (pageNumber) => {
+    setCurrentPage(pageNumber);
   };
 
   return (
@@ -137,43 +163,60 @@ const Products = () => {
             </tr>
           </thead>
           <tbody>
-            {Array.isArray(filteredProducts) &&
-              filteredProducts.map((product) => (
-                <tr key={product._id} className='border-b hover:bg-gray-50'>
-                  <td className='px-4 py-3 text-sm text-gray-700'>
-                    {product.name}
-                  </td>
-                  <td className='px-4 py-3 text-sm text-gray-700'>
-                    {product.category ? product.category.name : "N/A"}
-                  </td>
-                  <td className='px-4 py-3 text-sm text-gray-700'>
-                    {product.description}
-                  </td>
-                  <td className='px-4 py-3 text-sm text-red-500 font-semibold'>
-                    {product.basePrice.toLocaleString("vi-VN", {
-                      style: "currency",
-                      currency: "VND",
-                    })}
-                  </td>
+            {currentProducts.map((product) => (
+              <tr key={product._id} className='border-b hover:bg-gray-50'>
+                <td className='px-4 py-3 text-sm text-gray-700'>
+                  {product.name}
+                </td>
+                <td className='px-4 py-3 text-sm text-gray-700'>
+                  {product.category ? product.category.name : "N/A"}
+                </td>
+                <td className='px-4 py-3 text-sm text-gray-700'>
+                  {product.description}
+                </td>
+                <td className='px-4 py-3 text-sm text-red-500 font-semibold'>
+                  {product.basePrice.toLocaleString("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  })}
+                </td>
 
-                  <td className='py-3 px-4 space-x-4'>
-                    <button
-                      onClick={() => handleEditProduct(product)}
-                      className='text-blue-600 hover:text-blue-800 text-[18px]'
-                    >
-                      <i className='ri-edit-line'></i>
-                    </button>
-                    <button
-                      onClick={() => confirmDeleteProduct(product)}
-                      className='text-red-600 hover:text-red-800 text-[18px]'
-                    >
-                      <i className='ri-delete-bin-line'></i>
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                <td className='py-3 px-4 space-x-4'>
+                  <button
+                    onClick={() => handleEditProduct(product)}
+                    className='text-blue-600 hover:text-blue-800 text-[18px]'
+                  >
+                    <i className='ri-edit-line'></i>
+                  </button>
+                  <button
+                    onClick={() => confirmDeleteProduct(product)}
+                    className='text-red-600 hover:text-red-800 text-[18px]'
+                  >
+                    <i className='ri-delete-bin-line'></i>
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
+      </div>
+
+      <div className='flex justify-center mt-4'>
+        {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+          (pageNumber) => (
+            <button
+              key={pageNumber}
+              onClick={() => handlePageClick(pageNumber)}
+              className={`px-4 py-2 ${
+                currentPage === pageNumber
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200"
+              } text-gray-700`}
+            >
+              {pageNumber}
+            </button>
+          )
+        )}
       </div>
 
       {isFormOpen &&

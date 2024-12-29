@@ -119,7 +119,7 @@ const Categories = () => {
 
   return (
     <div className='bg-white p-6 rounded-lg shadow-lg border border-gray-300 flex-1'>
-      <h2 className='text-heading3-bold mb-4'>Danh Mục Sản Phẩm</h2>
+      <h2 className='text-heading3-bold mb-4'>Categories</h2>
       <div className='bg-white h-16 flex justify-between items-center border-b border-gray-200'>
         <div className='relative'>
           <i className='ri-search-line text-gray-400 absolute top-1/2 -translate-y-1/2 left-3'></i>
@@ -135,7 +135,7 @@ const Categories = () => {
           onClick={handleCreateCategory}
           className='bg-primary text-white px-4 py-2 rounded hover:bg-blue-600 transition'
         >
-          Thêm Danh Mục
+          Create Category
         </button>
       </div>
 
