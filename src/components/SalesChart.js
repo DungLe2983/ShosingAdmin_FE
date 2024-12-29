@@ -24,11 +24,11 @@ const SalesChart = ({ orders = [] }) => {
 
     try {
       const completedOrders = orders.filter(
-        (order) => order.status === "Completed"
+        (order) => order.status === "delivered"
       );
 
       const salesByDate = completedOrders.reduce((acc, order) => {
-        const orderDate = format(new Date(order.orderDate), "dd/MM/yyyy");
+        const orderDate = format(new Date(order.createdAt), "dd/MM/yyyy");
         acc[orderDate] = (acc[orderDate] || 0) + order.totalAmount;
         return acc;
       }, {});

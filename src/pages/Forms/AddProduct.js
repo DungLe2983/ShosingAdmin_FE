@@ -4,7 +4,7 @@ import { createProduct } from "../../services/productService";
 import toast from "react-hot-toast";
 import { uploadToCloudinary } from "../../services/uploadService";
 
-const AddProduct = ({ closeForm, token }) => {
+const AddProduct = ({ closeForm, token, reload }) => {
   const [categories, setCategories] = useState([]);
   const [variations, setVariations] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -110,6 +110,7 @@ const AddProduct = ({ closeForm, token }) => {
       const response = await createProduct(formData, token); // Send form data to the server
       console.log("response==", response);
       toast.success("Sản phẩm đã được thêm thành công");
+      reload();
       closeForm(); // Close the form on successful submission
     } catch (error) {
       console.error("Lỗi khi tạo sản phẩm:", error);
@@ -233,6 +234,15 @@ const AddProduct = ({ closeForm, token }) => {
                     onChange={(e) => handleImageUpload(e, variationIndex)}
                     className='w-full border border-gray-300 p-2 rounded'
                   />
+                  {variation.image && (
+                    <div className='mt-2'>
+                      <img
+                        src={variation.image}
+                        alt='Cover Preview'
+                        className='h-60 w-60 object-cover'
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Sizes */}

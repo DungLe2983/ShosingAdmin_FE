@@ -144,13 +144,11 @@ const Profile = () => {
                 )}
               </div>
               <div className='mt-4'>
-                <h3 className='text-sm font-medium text-gray-700'>
-                  Các Địa Chỉ:
-                </h3>
+                <h3 className='text-sm font-medium text-gray-700'>Địa Chỉ:</h3>
                 <ul>
                   {addresses.length > 0 ? (
                     addresses.map((address, index) => (
-                      <li key={index} className='text-sm text-gray-500'>
+                      <li key={index} className='text-sm text-gray-500 mt-4'>
                         {address.street}, {address.district}, {address.city}
                       </li>
                     ))

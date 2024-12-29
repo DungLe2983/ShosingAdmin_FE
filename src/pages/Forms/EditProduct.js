@@ -15,6 +15,7 @@ const EditProduct = ({ closeForm, token, reload, editData }) => {
   const [basePrice, setBasePrice] = useState(editData.basePrice);
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [coverImage, setCoverImage] = useState(null);
 
   // Fetch danh mục
   useEffect(() => {
@@ -110,8 +111,8 @@ const EditProduct = ({ closeForm, token, reload, editData }) => {
     try {
       const response = await updateProduct(editData._id, formData, token); // Update sản phẩm
       toast.success("Sản phẩm đã được cập nhật thành công");
-      reload(response.product); // Reload lại dữ liệu sản phẩm
-      closeForm(); // Đóng form sau khi cập nhật thành công
+      reload();
+      closeForm();
     } catch (error) {
       console.error("Lỗi khi cập nhật sản phẩm:", error);
       setErrorMessage("Không thể cập nhật sản phẩm. Vui lòng thử lại.");
@@ -234,6 +235,13 @@ const EditProduct = ({ closeForm, token, reload, editData }) => {
                     onChange={(e) => handleImageUpload(e, variationIndex)}
                     className='w-full border border-gray-300 p-2 rounded'
                   />
+                  <div className='mt-2'>
+                    <img
+                      src={variation.image}
+                      alt='Cover Preview'
+                      className='h-60 w-60 object-cover'
+                    />
+                  </div>
                 </div>
 
                 {/* Sizes */}

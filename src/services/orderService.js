@@ -1,36 +1,106 @@
 import axios from "axios";
 
-export const getAllOrders = async () => {
+const API_URL = "http://localhost:8080/api/orders";
+
+export const getUserOrders = async (token) => {
   try {
-    const response = await axios.get("https://localhost:44392/api/Order");
+    const response = await axios.get(`${API_URL}/my-orders`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return response.data;
   } catch (error) {
-    console.log("Failed to fetch Order", error);
+    console.error("Error fetching user orders:", error);
+    throw error;
   }
 };
 
-export const deleteOrder = async (id) => {
+export const getAllOrders = async (token) => {
   try {
-    const response = await axios.delete(
-      `https://localhost:44392/api/Order/${id}`
-    );
+    const response = await axios.get(API_URL, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return response.data;
   } catch (error) {
-    console.log("Failed to delete Order", error);
+    console.error("Error fetching all orders:", error);
+    throw error;
   }
 };
 
-export const updateOrderStatus = async (orderId, status, existingData) => {
+// Lấy đơn hàng theo ID
+export const getOrderById = async (orderId, token) => {
+  try {
+    const response = await axios.get(`${API_URL}/${orderId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching order by ID:", error);
+    throw error;
+  }
+};
+
+// Tạo đơn hàng mới
+export const createOrder = async (orderData, token) => {
+  try {
+    const response = await axios.post(API_URL, orderData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error creating order:", error);
+    throw error;
+  }
+};
+
+// Cập nhật trạng thái đơn hàng
+export const updateOrderStatus = async (orderId, status, token) => {
   try {
     const response = await axios.put(
-      `https://localhost:44392/api/Order/${orderId}`,
+      `${API_URL}/${orderId}/status`,
+      { status },
       {
-        ...existingData, // Giữ nguyên tất cả các trường cũ
-        status: status, // Cập nhật trường status
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       }
     );
     return response.data;
   } catch (error) {
-    console.log("Failed to update order status", error);
+    console.error("Error updating order status:", error);
+    throw error;
+  }
+};
+
+// Cập nhật trạng thái thanh toán của đơn hàng
+export const updateOrderPaymentStatus = async (
+  orderId,
+  paymentStatus,
+  token
+) => {
+  try {
+    const response = await axios.put(
+      `${API_URL}/${orderId}/payment`,
+      { paymentStatus },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating order payment status:", error);
+    throw error;
   }
 };

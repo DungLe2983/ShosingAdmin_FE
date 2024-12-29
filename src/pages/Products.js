@@ -8,11 +8,14 @@ import EditProduct from "./Forms/EditProduct.js";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]); // Trạng thái để lưu danh sách sản phẩm đã lọc
+  const [searchQuery, setSearchQuery] = useState(""); // Trạng thái cho ô tìm kiếm
   const [categories, setCategories] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editData, setEditData] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [checked, setChecked] = useState(false);
 
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
@@ -27,6 +30,7 @@ const Products = () => {
         const productData = await getAllProducts();
         if (productData && Array.isArray(productData.products)) {
           setProducts(productData.products);
+          setFilteredProducts(productData.products); // Cập nhật sản phẩm đã lọc ban đầu
         } else {
           toast.error("Invalid product data format.");
         }
@@ -37,19 +41,11 @@ const Products = () => {
     };
 
     fetchData();
-  }, []);
+  }, [checked]);
 
   const handleCreateProduct = () => {
     setEditData(null);
     setIsFormOpen(true);
-  };
-
-  const reloadProducts = (newProduct) => {
-    setProducts((prev) =>
-      newProduct.id
-        ? prev.map((p) => (p.id === newProduct.id ? newProduct : p))
-        : [...prev, newProduct]
-    );
   };
 
   const handleEditProduct = (product) => {
@@ -68,6 +64,9 @@ const Products = () => {
       console.log("ID==", id);
       await deleteProduct(id, token);
       setProducts(products.filter((product) => product._id !== id));
+      setFilteredProducts(
+        filteredProducts.filter((product) => product._id !== id)
+      ); // Cập nhật danh sách đã lọc
       toast.success("Product deleted successfully");
       setDeleteModalOpen(false);
       setSelectedProduct(null);
@@ -77,10 +76,37 @@ const Products = () => {
     }
   };
 
+  // Hàm xử lý thay đổi ô tìm kiếm
+  const handleSearchChange = (event) => {
+    const query = event.target.value;
+    setSearchQuery(query);
+
+    // Lọc sản phẩm theo tên
+    if (query.trim() === "") {
+      setFilteredProducts(products); // Nếu không có từ khóa tìm kiếm, hiển thị tất cả sản phẩm
+    } else {
+      const filtered = products.filter(
+        (product) => product.name.toLowerCase().includes(query.toLowerCase()) // Kiểm tra tên sản phẩm có chứa từ khóa tìm kiếm không
+      );
+      setFilteredProducts(filtered); // Cập nhật danh sách đã lọc
+    }
+  };
+
   return (
     <div className='bg-white p-6 rounded-lg shadow-lg border border-gray-300 flex-1'>
       <h2 className='text-heading3-bold mb-4'>List of Products</h2>
+
       <div className='bg-white h-16 flex justify-between items-center border-b border-gray-200'>
+        <div className='relative'>
+          <i className='ri-search-line text-gray-400 absolute top-1/2 -translate-y-1/2 left-3'></i>
+          <input
+            type='text'
+            placeholder='Tìm kiếm...'
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className='text-sm focus:outline-none active:outline-none h-10 w-[24rem] border border-gray-300 rounded-sm pl-11 pr-4'
+          />
+        </div>
         <button
           onClick={handleCreateProduct}
           className='bg-primary text-white px-4 py-2 rounded hover:bg-blue-600 transition'
@@ -105,15 +131,14 @@ const Products = () => {
               <th className='px-4 py-2 text-left text-sm font-medium text-gray-600'>
                 Price
               </th>
-
               <th className='px-4 py-2 text-left text-sm font-medium text-gray-600'>
                 Actions
               </th>
             </tr>
           </thead>
           <tbody>
-            {Array.isArray(products) &&
-              products.map((product) => (
+            {Array.isArray(filteredProducts) &&
+              filteredProducts.map((product) => (
                 <tr key={product._id} className='border-b hover:bg-gray-50'>
                   <td className='px-4 py-3 text-sm text-gray-700'>
                     {product.name}
@@ -151,29 +176,19 @@ const Products = () => {
         </table>
       </div>
 
-      {/* {isFormOpen && (
-        <AddProduct
-          closeForm={() => setIsFormOpen(false)}
-          token={token}
-          reload={reloadProducts}
-          // categories={categories}
-        />
-      )} */}
-
       {isFormOpen &&
-        // Tùy thuộc vào điều kiện mở form, hiển thị AddProduct hoặc EditProduct
         (editData ? (
           <EditProduct
-            closeForm={() => setIsFormOpen(false)} // Đóng form chỉnh sửa
+            closeForm={() => setIsFormOpen(false)}
             token={token}
-            reload={reloadProducts}
-            editData={editData} // Truyền dữ liệu sản phẩm cần chỉnh sửa vào EditProduct
+            reload={() => setChecked(!checked)}
+            editData={editData}
           />
         ) : (
           <AddProduct
-            closeForm={() => setIsFormOpen(false)} // Đóng form tạo sản phẩm
+            closeForm={() => setIsFormOpen(false)}
             token={token}
-            reload={reloadProducts}
+            reload={() => setChecked(!checked)}
           />
         ))}
 
